@@ -1,39 +1,54 @@
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
+import TextareaAutosize from 'react-textarea-autosize'
 import styles from './Controls.module.css'
 
-function Controls({onSend}) {
-const [content,setContent]=useState("")
 
-function handleContentChange(event){
-  setContent(event.target.value);
-}
+function Controls({isDisabled=false,onSend}) {
+  const textareaRef=useRef(null);
+  const [content,setContent]=useState("")
 
-function handleContentSend(){
-  if (content.length >0){
-    onSend(content)
-    setContent("")
+  useEffect(()=>{
+    if(!isDisabled){
+      textareaRef.current.focus();
+    }
+  }, [isDisabled])
+  function handleContentChange(event){
+    setContent(event.target.value);
   }
-}
 
-function handleEnterPress(event){
-  if(event.key==="Enter" && !event.shiftKey){
-    event.preventDefault()
-    handleContentSend()
+  function handleContentSend(){
+    if (content.length >0){
+      onSend(content)
+      setContent("")
+    }
   }
-}
-  return (
-    <div className={styles.Controls}>
-        <div className={styles.TextAreaContainer}>
-            <textarea className={styles.TextArea} placeholder='Please feel free to ask anything'
-            value={content}
-            onChange={handleContentChange}
-            onKeyDown={handleEnterPress}/>
-        </div>
-        <button className={styles.Button} onClick={handleContentSend}>
-          <SendIcon/>
-        </button>
-    </div>
-  )
+
+  function handleEnterPress(event){
+    if(event.key==="Enter" && !event.shiftKey){
+      event.preventDefault()
+      handleContentSend()
+    }
+  }
+    return (
+      <div className={styles.Controls}>
+          <div className={styles.TextAreaContainer}>
+            <TextareaAutosize
+              ref={textareaRef}
+              className={styles.TextArea} placeholder='Please feel free to ask anything'
+              value={content}
+              disabled={isDisabled}
+              minRows={1}
+              maxRows={4}
+              onChange={handleContentChange}
+              onKeyDown={handleEnterPress}
+            />
+          </div>
+          <button 
+          className={styles.Button} onClick={handleContentSend} disabled={isDisabled}>
+            <SendIcon/>
+          </button>
+      </div>
+    )
 }
 function SendIcon(){
     return(
