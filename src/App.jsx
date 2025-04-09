@@ -10,6 +10,14 @@ function App() {
   const assistant =new Assistant();
   const [messages,setMessages]=useState([]);
   const [isLoading, setIsLoading]=useState(false);
+  const [isStreaming, setIsStreaming]=useState(false);
+
+  function updateLastMessageContent(content){
+    setMessages((prevMessage)=>prevMessage.map((message,index)=>
+      index ===prevMessage.length-1 
+    ? {...message,content:`${message.content}${content}`}
+    :message))
+  }
   
   function addMessage(message){
     setMessages((prevMessage)=>[...prevMessage,message])
@@ -17,17 +25,29 @@ function App() {
 
   async function handleContentSend(content){
     addMessage({content, role:"user"})
+    setIsLoading(true);
     try{
-      setIsLoading(true);
-      const result =await assistant.chat(content)
-      addMessage({content: result, role:"assistant"});      
+      const result =await assistant.chatStream(content)
+      let isFirstChunk =false
+
+      for await(const chunk of result){
+        if(!isFirstChunk){
+          isFirstChunk=true
+          addMessage({content:"",role: "assistant"})
+          setIsLoading(false)
+          setIsStreaming(true)
+        }
+
+        updateLastMessageContent(chunk)
+      }
+      setIsStreaming(false)
     }catch(error){
       addMessage({
         content: "Sorry, it seems I am facing an issue processing your request. Kindly try again.", 
         role:"system",
       });      
-    }finally{
       setIsLoading(false);
+      setIsStreaming(false)
     }
   }
   return (
@@ -40,7 +60,7 @@ function App() {
       <div className={styles.ChatContainer}>
         <Chat messages={messages}/>
       </div>
-      <Controls isDisabled={isLoading} onSend={handleContentSend}/>
+      <Controls isDisabled={isLoading || isStreaming} onSend={handleContentSend}/>
     </div>
   )
 }
