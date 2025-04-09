@@ -1,13 +1,29 @@
 import { useState } from "react"
+import { Assistant } from "./assistant/googleai";
 import styles from "./App.module.css"
 import Chat from "./components/Chat/Chat"
 import Controls from "./components/Controls/Controls";
 
+
 function App() {
+  const assistant =new Assistant();
   const [messages,setMessages]=useState([]);
   
-  function handleContentSend(content){
-    setMessages((prevMessage)=>[...prevMessage,{content,role:'user'}])
+  function addMessage(message){
+    setMessages((prevMessage)=>[...prevMessage,message])
+  }
+
+  async function handleContentSend(content){
+    addMessage({content, role:"user"})
+    try{
+      const result =await assistant.chat(content)
+      addMessage({content: result, role:"assistant"});      
+    }catch(error){
+      addMessage({
+        content: "Sorry, it seems I am facing an issue processing your request. Kindly try again.", 
+        role:"system",
+      });      
+    }
   }
   return (
     <div className={styles.App}>

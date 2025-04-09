@@ -24,7 +24,7 @@ function handleEnterPress(event){
   return (
     <div className={styles.Controls}>
         <div className={styles.TextAreaContainer}>
-            <textarea className={styles.TextArea} placeholder='What is up guyss'
+            <textarea className={styles.TextArea} placeholder='Please feel free to ask anything'
             value={content}
             onChange={handleContentChange}
             onKeyDown={handleEnterPress}/>
